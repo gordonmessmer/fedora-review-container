@@ -1,11 +1,17 @@
 #!/bin/sh
+# Run as an unprivileged user: mock refuses to run as real root, and some
+# test suites assert that unauthorized file access fails, which never happens
+# as root. The user joins mock (to run mock) and wheel (passwordless sudo,
+# used to install packages at runtime).
 podman run --rm -it --privileged \
+ --userns=keep-id \
+ --group-add=wheel,mock \
  -v /etc/nsswitch.conf:/etc/nsswitch.conf \
  -v /etc/krb5.conf.d/kcm_default_ccache:/etc/krb5.conf.d/kcm_default_ccache \
  -v /run/.heim_org.h5l.kcm-socket:/run/.heim_org.h5l.kcm-socket \
  -v /var/lib/sss:/var/lib/sss \
- -v ${HOME}/.config:/root/.config:z \
- -v ${HOME}/.gitconfig:/root/.gitconfig:z \
- -v /home/gmessmer/git:/home/gmessmer/git:z \
+ -v ${HOME}/.config:/home/gmessmer/.config \
+ -v ${HOME}/.gitconfig:/home/gmessmer/.gitconfig \
+ -v ${HOME}/git:/home/gmessmer/git \
  -w /home/gmessmer/git \
  fedora-review:44
